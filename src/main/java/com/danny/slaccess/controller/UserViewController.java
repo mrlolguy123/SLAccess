@@ -95,20 +95,21 @@ public class UserViewController {
 
     @FXML
     protected void InfoIDButtonClick() throws SQLException {
-        String query = "SELECT * FROM userTable WHERE numID = ?";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setInt(1,Integer.parseInt(InfoUserField.getText()));
-        ResultSet rs = ps.executeQuery();
+        if(checkID(InfoUserField.getText()))
+        {
+            String query = "SELECT * FROM userTable WHERE numID = ?";
+            PreparedStatement ps = con.prepareStatement(query);
+            ps.setInt(1,Integer.parseInt(InfoUserField.getText()));
+            ResultSet rs = ps.executeQuery();
 
-        if(rs.getInt(1) != Integer.parseInt(InfoUserField.getText())) {
-            UserTableMessage.setText("Search by User ID Error\nInvalid User ID.");
-            return;
+            if (rs.getInt(1) == Integer.parseInt(InfoUserField.getText())) {
+                InfoNameField.setText(rs.getString(2));
+                InfoTypeField.setText(rs.getString(3));
+                InfoAuthCheckBox.setSelected(rs.getBoolean(4));
+                return;
+            }
         }
-        else {
-            InfoNameField.setText(rs.getString(2));
-            InfoTypeField.setText(rs.getString(3));
-            InfoAuthCheckBox.setSelected(rs.getBoolean(4));
-        }
+        UserTableMessage.setText("Search by User ID Error\nInvalid User ID");
     }
 
     @FXML
