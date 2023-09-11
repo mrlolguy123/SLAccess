@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -62,11 +63,13 @@ public class HelloController {
                 ps.setInt(1,Integer.parseInt(user));
                 ResultSet rs = ps.executeQuery();
                 if(rs.getInt(1) == Integer.parseInt(user) && rs.getString(2).equals(passField.getText())) {
+                    con.close();
                     loginMessage.setText("You are now logged in.");
                     Stage stage = (Stage) passField.getScene().getWindow();
                     stage.hide();
                     FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("user-view.fxml"));
-                    Scene scene = new Scene(fxmlLoader.load(), 1600, 900);
+                    stage.getIcons().add(new Image(String.valueOf(HelloApplication.class.getResource("icon.jpg"))));
+                    Scene scene = new Scene(fxmlLoader.load());
                     stage.setScene(scene);
                     stage.show();
                 }
@@ -89,13 +92,13 @@ public class HelloController {
             passField.setVisible(false);
             passLabel.setVisible(false);
             passField.setText("");
-            LoginButton.setText("Enter");
+            LoginButton.setText("Scan");
 
             return;
         }
         passField.setVisible(true);
         passLabel.setVisible(true);
-        LoginButton.setText("Scan");
+        LoginButton.setText("Login");
     }
 
     private boolean isNumeric(String a) {

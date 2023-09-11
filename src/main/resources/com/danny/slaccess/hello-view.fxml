@@ -24,6 +24,7 @@
       <Label fx:id="passLabel" text="Password: " translateY="35.0" visible="false" GridPane.halignment="RIGHT" />
       <Label text="User ID: " GridPane.halignment="RIGHT" />
       <TextField fx:id="userIDField" GridPane.columnIndex="1" />
+      <PasswordField fx:id="passField" translateY="35.0" visible="false" GridPane.columnIndex="1" />
       <Button fx:id="LoginButton" mnemonicParsing="false" onAction="#loginButtonPressed" text="Scan" GridPane.columnIndex="2" GridPane.halignment="LEFT">
          <GridPane.margin>
             <Insets left="10.0" />
@@ -39,7 +40,6 @@
             <Insets bottom="10.0" left="10.0" />
          </GridPane.margin>
       </CheckBox>
-      <PasswordField fx:id="passField" translateY="35.0" visible="false" GridPane.columnIndex="1" />
       <Label fx:id="loginMessage" translateY="75.0" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
    </children>
 </GridPane>
