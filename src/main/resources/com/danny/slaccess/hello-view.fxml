@@ -24,7 +24,7 @@
       <Label fx:id="passLabel" text="Password: " translateY="35.0" visible="false" GridPane.halignment="RIGHT" />
       <Label text="User ID: " GridPane.halignment="RIGHT" />
       <TextField fx:id="userIDField" GridPane.columnIndex="1" />
-      <Button fx:id="LoginButton" mnemonicParsing="false" onAction="#loginButtonPressed" text="Enter" GridPane.columnIndex="2" GridPane.halignment="LEFT">
+      <Button fx:id="LoginButton" mnemonicParsing="false" onAction="#loginButtonPressed" text="Scan" GridPane.columnIndex="2" GridPane.halignment="LEFT">
          <GridPane.margin>
             <Insets left="10.0" />
          </GridPane.margin>
