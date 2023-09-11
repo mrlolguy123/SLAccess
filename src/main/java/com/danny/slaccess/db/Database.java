@@ -5,31 +5,31 @@ import com.danny.slaccess.HelloApplication;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.SQLOutput;
 
 public class Database {
-    public static void connect() {
+    Connection conn = null;
+    public Connection connect() {
         String dbURL = "jdbc:sqlite:accessedTable";
-        Connection con = null;
 
         try {
-            con = DriverManager.getConnection(dbURL);
-
+            conn = DriverManager.getConnection(dbURL);
             System.out.println("You have successfully connected to the database.");
+            return conn;
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-        } finally {
-            try {
-                if (con != null) {
-                    con.close();
-                }
-            } catch (SQLException ex) {
-                System.out.println(ex.getMessage());
-            }
         }
+
+        return null;
     }
 
-    public static void disconnect()
-    {
-
+    public void disconnect() {
+        try{
+            conn.close();
+            System.out.println("Database is now disconnected.");
+        }
+        catch (SQLException e){
+            System.out.println("Database was not connected.");
+        }
     }
 }
