@@ -59,7 +59,63 @@ public class UserViewController {
     private Label UserTableMessage;
     @FXML
     private Button RefreshButton;
+    @FXML
+    private CheckBox filterIDCheckbox;
+    @FXML
+    private CheckBox filterDateCheckbox;
+    @FXML
+    private CheckBox filterTimeCheckbox;
+    @FXML
+    private TextField filterIDField;
+    @FXML
+    private DatePicker filterDateField;
+    @FXML
+    private TextField filterTimeField;
 
+    protected void refreshUserTable() throws SQLException {
+        ObservableList<UserModel> UserModelList = FXCollections.observableArrayList();
+        String query1 = "SELECT * FROM userTable ORDER BY name";
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery(query1);
+
+        while(rs.next())
+        {
+            Integer id = rs.getInt(1);
+            String name = rs.getString(2);
+            String type = rs.getString(3);
+            boolean auth = rs.getBoolean(4);
+
+            UserModelList.add(new UserModel(id, name, type, auth));
+        }
+
+        infoIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        infoNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        infoTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        infoAuthColumn.setCellValueFactory(new PropertyValueFactory<>("auth"));
+        clientUserTable.setItems(UserModelList);
+    }
+
+    protected void refreshAccessTable() throws SQLException {
+        RefreshButton.setText("Refresh Tables");
+        ObservableList<AccessModel> AccessModelList = FXCollections.observableArrayList();
+        String query1 = "SELECT * FROM accessTable ORDER BY inTime DESC";
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery(query1);
+
+        while(rs.next())
+        {
+            Integer id = rs.getInt(1);
+            String in = rs.getString(2);
+            String out = rs.getString(3);
+
+            AccessModelList.add(new AccessModel(id,in,out));
+        }
+
+        accessIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        accessInColumn.setCellValueFactory(new PropertyValueFactory<>("in"));
+        accessOutColumn.setCellValueFactory(new PropertyValueFactory<>("out"));
+        clientAccessTable.setItems(AccessModelList);
+    }
     @FXML
     protected void ApplyButtonClick() throws SQLException {
         String update = "UPDATE userTable SET auth = ? WHERE numID = ?;";
@@ -82,7 +138,7 @@ public class UserViewController {
                 ps.executeUpdate();
                 UserTableMessage.setText("Authorization was toggled.");
                 InfoIDButtonClick();
-                RefreshButtonClick();
+                refreshUserTable();
                 return;
             }
         }
@@ -126,47 +182,76 @@ public class UserViewController {
 
     @FXML
     protected void RefreshButtonClick() throws SQLException {
-        RefreshButton.setText("Refresh Tables");
-        ObservableList<AccessModel> AccessModelList = FXCollections.observableArrayList();
-        ObservableList<UserModel> UserModelList = FXCollections.observableArrayList();
-        String query1 = "SELECT * FROM accessTable ORDER BY inTime DESC";
-        String query2 = "SELECT * FROM userTable ORDER BY name";
-        Statement s = con.createStatement();
-        ResultSet rs = s.executeQuery(query1);
+        refreshAccessTable();
+        refreshUserTable();
+    }
 
-        while(rs.next())
+    @FXML
+    protected void filterIDCheckboxClick()
+    {
+        if(!filterIDCheckbox.isSelected())
         {
-            Integer id = rs.getInt(1);
-            String in = rs.getString(2);
-            String out = rs.getString(3);
-
-            AccessModelList.add(new AccessModel(id,in,out));
+            filterIDField.setText("");
+            filterIDField.setDisable(true);
         }
+        else {
+            filterIDField.setText("");
+            filterIDField.setDisable(false);
+        }
+    }
 
-        accessIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        accessInColumn.setCellValueFactory(new PropertyValueFactory<>("in"));
-        accessOutColumn.setCellValueFactory(new PropertyValueFactory<>("out"));
-        clientAccessTable.setItems(AccessModelList);
-
-        rs = s.executeQuery(query2);
-
-        while(rs.next())
+    @FXML
+    protected void filterDateCheckboxClick()
+    {
+        if(!filterDateCheckbox.isSelected())
         {
-            Integer id = rs.getInt(1);
-            String name = rs.getString(2);
-            String type = rs.getString(3);
-            boolean auth = rs.getBoolean(4);
-
-            UserModelList.add(new UserModel(id, name, type, auth));
+            filterDateField.setValue(null);
+            filterDateField.setDisable(true);
+            filterTimeCheckbox.setSelected(false);
+            filterTimeCheckbox.setDisable(true);
+            filterTimeField.setText("");
+            filterTimeField.setDisable(true);
         }
+        else {
+            filterDateField.setDisable(false);
+            filterTimeCheckbox.setDisable(false);
+        }
+    }
 
-        infoIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        infoNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        infoTypeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
-        infoAuthColumn.setCellValueFactory(new PropertyValueFactory<>("auth"));
-        clientUserTable.setItems(UserModelList);
+    @FXML
+    protected void filterTimeCheckboxClick()
+    {
+        if(!filterTimeCheckbox.isSelected())
+        {
+            filterTimeField.setText("");
+            filterTimeField.setDisable(true);
+        }
+        else {
+            filterTimeField.setText("");
+            filterTimeField.setDisable(false);
+        }
+    }
+
+    @FXML
+    protected void filterRemoveButtonClick() throws SQLException
+    {
+        filterIDCheckbox.setSelected(false);
+        filterIDField.setText("");
+        filterIDField.setDisable(true);
+        filterDateCheckbox.setSelected(false);
+        filterDateField.setValue(null);
+        filterDateField.setDisable(true);
+        filterTimeCheckbox.setSelected(false);
+        filterTimeField.setText("");
+        filterTimeField.setDisable(true);
+        refreshAccessTable();
+    }
+
+    @FXML
+    protected void filterApplyButtonClick() {
 
     }
+
 
     private boolean isNumeric(String a) {
         try {
