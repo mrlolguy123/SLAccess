@@ -71,6 +71,43 @@ public class UserViewController {
     private DatePicker filterDateField;
     @FXML
     private TextField filterTimeField;
+    @FXML
+    private Label filterMessage;
+    @FXML
+    private RadioButton filterInButton;
+    @FXML
+    private RadioButton filterOutButton;
+
+    private boolean checkID(String id){
+        String user;
+
+        if(id.isBlank()) {
+            return false; }
+
+        if(id.charAt(0) == '%' && id.charAt(1) == 'A') {
+            user = id.substring(2,11);
+            filterIDField.setText(user);
+            InfoUserField.setText(user); //bandaid fix because checking for id in every other function requires a tiny little bit of code rework and its 1:48 am at 9/11/2023 and i want to go to sleep real badly.
+        } else {
+            user = id;
+        }
+
+        if(user.length() != 9) {
+            return false;
+        }
+
+        return isNumeric(user);
+    }
+
+    private boolean isNumeric(String a) {
+        try {
+            int num = Integer.parseInt(a);
+        } catch (NumberFormatException e) {
+            System.out.println(e);
+            return false;
+        }
+        return true;
+    }
 
     protected void refreshUserTable() throws SQLException {
         ObservableList<UserModel> UserModelList = FXCollections.observableArrayList();
@@ -120,6 +157,7 @@ public class UserViewController {
     protected void ApplyButtonClick() throws SQLException {
         String update = "UPDATE userTable SET auth = ? WHERE numID = ?;";
         String query = "SELECT * FROM userTable WHERE numID = ?";
+        filterIDField.setText(""); // see bandaid fix checkid()
 
         if(checkID(InfoUserField.getText())) {
             PreparedStatement ps = con.prepareStatement(query);
@@ -129,11 +167,7 @@ public class UserViewController {
 
             if (rs.getInt(1) == Integer.parseInt(InfoUserField.getText())) {
                 ps = con.prepareStatement(update);
-                if (check) {
-                    ps.setBoolean(1, false);
-                } else {
-                    ps.setBoolean(1, true);
-                }
+                ps.setBoolean(1, !check);
                 ps.setInt(2, Integer.parseInt(InfoUserField.getText()));
                 ps.executeUpdate();
                 UserTableMessage.setText("Authorization was toggled.");
@@ -162,9 +196,11 @@ public class UserViewController {
                 InfoNameField.setText(rs.getString(2));
                 InfoTypeField.setText(rs.getString(3));
                 InfoAuthCheckBox.setSelected(rs.getBoolean(4));
+                filterIDField.setText(""); // see bandaid fix checkid()
                 return;
             }
         }
+        filterIDField.setText(""); // see bandaid fix checkid()
         UserTableMessage.setText("Search by User ID Error\nInvalid User ID");
     }
 
@@ -248,39 +284,100 @@ public class UserViewController {
     }
 
     @FXML
-    protected void filterApplyButtonClick() {
+    protected void filterApplyButtonClick() throws SQLException {
+        String queryID = "'%'"; // Used for 1
+        String queryInOut = "'%'"; // Used for 2 and 4
+        String queryDateTime = "'%'"; // Used for 3
 
+        if(filterIDCheckbox.isSelected() && !(filterIDField.getText().isBlank())) {
+            if(!checkID(filterIDField.getText())) {
+                filterMessage.setText("Filter Error - User ID Invalid");
+                return;
+            }
+
+            queryID = (filterIDField.getText());
+        }
+
+        if(filterDateCheckbox.isSelected() && filterDateField.getValue() != null) {
+            if(filterInButton.isSelected()) { queryInOut = "inTime"; }
+            else { queryInOut = "outTime"; }
+
+            queryDateTime = "'" + filterDateField.getValue().toString() + " ";
+        }
+
+        if(filterTimeCheckbox.isSelected() && !(filterTimeField.getText().isBlank()))
+        {
+            String ftf = filterTimeField.getText();
+            try {
+                if (isNumeric(ftf.substring(0, 2)) && ftf.charAt(2) == ':' && isNumeric(ftf.substring(3, 5))) {
+                    int a = Integer.parseInt(ftf.substring(0, 2)), b = Integer.parseInt(ftf.substring(3, 5));
+                    if (a <= 24 && a >= 1 && b <= 60 && b >= 0) {
+                        queryDateTime = queryDateTime + filterTimeField.getText() + "%'";
+                    } else {
+                        filterMessage.setText("Filter Time Error - Invalid Time");
+                        return;
+                    }
+                }
+            } catch (Exception e)
+            {
+                filterMessage.setText("Filter Time Error - Invalid Time");
+                return;
+            }
+        }
+        else if (!queryDateTime.equals("'%'")) {
+            queryDateTime = queryDateTime + "%'";
+        }
+
+        System.out.println("SELECT * FROM accessTable WHERE numID LIKE " + queryID + " and "+queryInOut + " LIKE "+queryDateTime+" ORDER BY "+queryInOut+" DESC");
+        InfoUserField.setText(""); // see bandaid fix in checkid()
+
+        RefreshButton.setText("Refresh Tables");
+        String query = "SELECT * FROM accessTable WHERE numID LIKE " + queryID + " and "+queryInOut + " LIKE "+queryDateTime+" ORDER BY "+queryInOut+" DESC";
+        ObservableList<AccessModel> AccessModelList = FXCollections.observableArrayList();
+        Statement s = con.createStatement();
+        ResultSet rs = s.executeQuery(query);
+
+        while(rs.next())
+        {
+            Integer id = rs.getInt(1);
+            String in = rs.getString(2);
+            String out = rs.getString(3);
+
+            AccessModelList.add(new AccessModel(id,in,out));
+        }
+
+        accessIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        accessInColumn.setCellValueFactory(new PropertyValueFactory<>("in"));
+        accessOutColumn.setCellValueFactory(new PropertyValueFactory<>("out"));
+        clientAccessTable.setItems(AccessModelList);
+    }
+
+    @FXML
+    protected void filterInButtonClick()
+    {
+        if (filterInButton.isSelected())
+        {
+            filterOutButton.setSelected(false);
+            filterInButton.setSelected(true);
+            return;
+        }
+        filterInButton.setSelected(true);
+    }
+
+    @FXML
+    protected void filterOutButtonClick()
+    {
+        if (filterOutButton.isSelected())
+        {
+            filterInButton.setSelected(false);
+            filterOutButton.setSelected(true);
+            return;
+        }
+        filterOutButton.setSelected(true);
     }
 
 
-    private boolean isNumeric(String a) {
-        try {
-            int num = Integer.parseInt(a);
-        } catch (NumberFormatException e) {
-            System.out.println(e);
-            return false;
-        }
-        return true;
-    }
 
-    private boolean checkID(String id){
-        String user;
 
-        if(id.isBlank()) {
-            return false; }
-
-        if(id.charAt(0) == '%' && id.charAt(1) == 'A') {
-            user = id.substring(2,11);
-            InfoUserField.setText(user); //bandaid fix because checking for id in every other function requires a tiny little bit of code rework and its 1:48 am at 9/11/2023 and i want to go to sleep real badly.
-        } else {
-            user = id;
-        }
-
-        if(user.length() != 9) {
-            return false;
-        }
-
-        return isNumeric(user);
-    }
 
 }
